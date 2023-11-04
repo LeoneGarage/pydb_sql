@@ -5,7 +5,7 @@ start_time = time.time()
 
 statement = Statement(
   api_url = "https://adb-984752964297111.11.azuredatabricks.net",
-  token = "<token>" # Yoir PAT Token
+  token = "<token>" # Your PAT Token
 )
 
 pdf = statement.execute(
