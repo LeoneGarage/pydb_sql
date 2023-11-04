@@ -1,6 +1,6 @@
 import time
 import json
-import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
 import pyarrow as pa
 import pandas as pd
@@ -27,8 +27,8 @@ class Statement:
     response = http.request(method="GET", url=response["external_links"][0]["external_link"])
     df = None
     if response.status == 200:
-        with pa.ipc.open_stream(response.data) as reader:
-            df = reader.read_pandas()
+      with pa.ipc.open_stream(response.data) as reader:
+        df = reader.read_pandas()
     else:
       raise Exception(f"HTTP Error {response.status}")
     return df
@@ -50,7 +50,7 @@ class Statement:
       statement_id = response["statement_id"]
 
       total_chunk_count = response["manifest"]["total_chunk_count"]
-      with concurrent.futures.ThreadPoolExecutor(max_workers=max_download_threads) as executor:
+      with ThreadPoolExecutor(max_workers=max_download_threads) as executor:
         runs = [executor.submit(self.__download_chunk, http, statement_id, c) for c in range(0, total_chunk_count)]
         results = [r.result() for r in runs]
 
