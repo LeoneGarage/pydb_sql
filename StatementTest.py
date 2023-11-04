@@ -8,7 +8,7 @@ token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiTok
 statement = Statement(api_url = api_url, token = token)
 pdf = statement.execute(
   warehouse_id = "11b188d521392342", # SQL Warehouse Id. Get it from SQL Warehouse Overview Tab in UI
-  sql_statement = "SELECT * FROM <catalog>.<schema>.<table>"
+  sql_statement = "SELECT * FROM <catalog>.<schema>.<table>" # Your query
 )
 
 # COMMAND ----------
