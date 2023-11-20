@@ -1,5 +1,9 @@
 # Databricks notebook source
-# MAGIC %pip install databricks-sql-connector
+# %pip install databricks-sql-connector
+
+# COMMAND ----------
+
+# MAGIC %pip install --no-index -f /Workspace/Repos/leon.eller@databricks.com/pydb_sql/sql-connector databricks-sql-connector
 
 # COMMAND ----------
 
@@ -23,7 +27,3 @@ with sql.connect(server_hostname = "adb-984752964297111.11.azuredatabricks.net",
 
     for row in results[0:10]:
       print(row)
-
-# COMMAND ----------
-
-
