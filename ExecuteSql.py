@@ -2,13 +2,22 @@
 dbutils.widgets.text("query_sql", "", "SQL to execute")
 dbutils.widgets.text("query_sql_file", "", "SQL to execute from a file")
 dbutils.widgets.text("warehouse_id", "", "SQL Warehouse Id")
-dbutils.widgets.text("host_uri", "adb-984752964297111.11.azuredatabricks.net", "Workspace Host Uri")
+dbutils.widgets.text("host_uri", "", "Workspace Host Uri")
 dbutils.widgets.text("max_download_threads", "20", "Maximum threads to use for download if use_cloud_fetch is true")
 dbutils.widgets.text("use_cloud_fetch", "False", "Use Cloud Fetch to retrieve query results")
 
 # COMMAND ----------
 
+from urllib.parse import urlparse
+
+# COMMAND ----------
+
 host_uri = dbutils.widgets.get("host_uri")
+parsed_uri = urlparse(host_uri)
+if parsed_uri.netloc is None or parsed_uri.netloc == "":
+  host_uri = parsed_uri.path
+else:
+  host_uri = parsed_uri.netloc
 warehouse_id = dbutils.widgets.get("warehouse_id")
 query_sql = dbutils.widgets.get("query_sql")
 query_sql_file = dbutils.widgets.get("query_sql_file")
@@ -45,8 +54,9 @@ def execute_sql(query_sql, host_uri, warehouse_id, max_download_threads = 20, us
     with connection.cursor() as cursor:
       for s in query_sqls:
         cursor.execute(s)
-      results = cursor.fetchall_arrow()
-      return results
+      result = cursor.fetchall_arrow()
+      return result
+      # return spark.createDataFrame(result.to_pandas())
 
 # COMMAND ----------
 
@@ -56,4 +66,4 @@ query_sql = ";".join(sql_arr)
 # COMMAND ----------
 
 result = execute_sql(query_sql, host_uri, warehouse_id)
-print(result)
+display(result)
