@@ -8,10 +8,6 @@ dbutils.widgets.text("use_cloud_fetch", "False", "Use Cloud Fetch to retrieve qu
 
 # COMMAND ----------
 
-import re
-
-# COMMAND ----------
-
 host_uri = dbutils.widgets.get("host_uri")
 warehouse_id = dbutils.widgets.get("warehouse_id")
 query_sql = dbutils.widgets.get("query_sql")
@@ -34,26 +30,30 @@ else:
 
 # COMMAND ----------
 
+def execute_sql(query_sql, host_uri, warehouse_id, max_download_threads = 20, use_cloud_fetch = False):
+  import re
+  from databricks import sql
+
+  query_sqls = re.findall("((?:(?:'[^']*')|[^;])*);", query_sql) # split by semicolon
+  token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
+  with sql.connect(server_hostname = host_uri,
+                  http_path       = f"/sql/1.0/warehouses/{warehouse_id}",
+                  access_token    = token,
+                  max_download_threads = max_download_threads,
+                  use_cloud_fetch = use_cloud_fetch) as connection:
+
+    with connection.cursor() as cursor:
+      for s in query_sqls:
+        cursor.execute(s)
+      results = cursor.fetchall_arrow()
+      return results
+
+# COMMAND ----------
+
 sql_arr = [s for s in [query_sql, query_sql_from_file] if s is not None and s != ""]
 query_sql = ";".join(sql_arr)
 
 # COMMAND ----------
 
-query_sqls = re.findall("((?:(?:'[^']*')|[^;])*);", query_sql) # split by semicolon
-
-# COMMAND ----------
-
-from databricks import sql
-
-token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
-with sql.connect(server_hostname = host_uri,
-                 http_path       = f"/sql/1.0/warehouses/{warehouse_id}",
-                 access_token    = token,
-                 max_download_threads = max_download_threads,
-                 use_cloud_fetch = use_cloud_fetch) as connection:
-
-  with connection.cursor() as cursor:
-    for s in query_sqls:
-      cursor.execute(s)
-    results = cursor.fetchall_arrow()
-    print(results)
+result = execute_sql(query_sql, host_uri, warehouse_id)
+print(result)
