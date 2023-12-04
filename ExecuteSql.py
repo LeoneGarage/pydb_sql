@@ -44,6 +44,8 @@ def execute_sql(query_sql, host_uri, warehouse_id, max_download_threads = 20, us
   from databricks import sql
 
   query_sqls = re.findall("((?:(?:'[^']*')|[^;])*);", query_sql) # split by semicolon
+  if len(query_sqls) == 0:
+    query_sqls = [query_sql]
   token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
   with sql.connect(server_hostname = host_uri,
                   http_path       = f"/sql/1.0/warehouses/{warehouse_id}",
